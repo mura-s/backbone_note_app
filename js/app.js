@@ -1,21 +1,41 @@
 window.App = {};
 
-$(function() {
+var initializeNotes = function() {
   var noteCollection = new App.NoteCollection([{
     title: 'test1',
-    body: 'test1 body'
+    body: 'body1'
   }, {
     title: 'test2',
-    body: 'test2 body'
+    body: 'body2'
+  }, {
+    title: 'test3',
+    body: 'body3'
   }]);
 
-  var mainContainer = new App.Container({
+  noteCollection.each(function(note) {
+    note.save();
+  });
+
+  return noteCollection.models;
+};
+
+$(function() {
+  App.noteCollection = new App.NoteCollection();
+
+  App.mainContainer = new App.Container({
     el: '#main-container'
   });
 
-  var noteListView = new App.NoteListView({
-    collection: noteCollection
-  });
+  App.noteCollection.fetch().then(function(notes) {
+    if (notes.length === 0) {
+      var models = initializeNotes();
+      App.noteCollection.reset(models);
+    }
 
-  mainContainer.show(noteListView);
+    var noteListView = new App.NoteListView({
+      collection: App.noteCollection
+    });
+
+    App.mainContainer.show(noteListView);
+  });
 });

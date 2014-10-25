@@ -32,10 +32,7 @@ $(function() {
       App.noteCollection.reset(models);
     }
 
-    var noteListView = new App.NoteListView({
-      collection: App.noteCollection
-    });
-
-    App.mainContainer.show(noteListView);
+    App.router = new App.Router();
+    Backbone.history.start();
   });
 });

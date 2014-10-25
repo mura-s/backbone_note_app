@@ -3,6 +3,7 @@ App.Router = Backbone.Router.extend({
     'notes/:id': 'showNoteDetail',
     'new': 'showNewNote',
     'notes/:id/edit': 'showEditNote',
+    'notes/search/:query': 'searchNote',
     '*actions': 'defaultRoute'
   },
 
@@ -22,18 +23,32 @@ App.Router = Backbone.Router.extend({
     this.navigate('notes');
   },
 
-  showNoteList: function() {
-    var noteListView = new App.NoteListView({
-      collection: App.noteCollection
-    });
+  showNoteList: function(models) {
+    if (!this.filteredCollection) {
+      this.filteredCollection = new App.NoteCollection();
+    }
 
-    App.mainContainer.show(noteListView);
+    if (!App.mainContainer.has(App.NoteListView)) {
+      var noteListView = new App.NoteListView({
+        collection: this.filteredCollection
+      });
+      App.mainContainer.show(noteListView);
+    }
 
+    models = models || App.noteCollection.models;
+
+    this.filteredCollection.reset(models);
     this.showNoteControl();
   },
 
   showNoteControl: function() {
     var noteControlView = new App.NoteControlView();
+
+    noteControlView.on('submit:form', function(query) {
+      this.searchNote(query);
+      this.navigate('notes/search/' + query);
+    }, this);
+
     App.headerContainer.show(noteControlView);
   },
 
@@ -70,5 +85,12 @@ App.Router = Backbone.Router.extend({
     });
 
     App.mainContainer.show(noteFormView);
+  },
+
+  searchNote: function(query) {
+    var filtered = App.noteCollection.filter(function(note) {
+      return note.get('title').indexOf(query) !== -1;
+    });
+    this.showNoteList(filtered);
   }
 });
